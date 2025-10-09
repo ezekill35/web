@@ -1,63 +1,61 @@
-// script.js - Animaciones y UX para index.html
+// script.js
+// ------------------------
+// Animaciones 3D y UX
+// ------------------------
 
-// ----------------------
-// Animaciones de enfoque en inputs
-// ----------------------
-const inputs = document.querySelectorAll("input");
-inputs.forEach(input => {
-    input.addEventListener("focus", () => {
-        input.style.boxShadow = "0 0 8px 2px rgba(13,110,253,0.5)";
-        input.style.borderColor = "#0d6efd";
-        input.style.transition = "all 0.3s ease";
+// Función para aplicar efecto 3D a un elemento
+function efecto3D(elemento) {
+    elemento.addEventListener('mousemove', e => {
+        const rect = elemento.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = -(y - centerY) / 20;
+        const rotateY = (x - centerX) / 20;
+        elemento.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     });
-    input.addEventListener("blur", () => {
-        input.style.boxShadow = "inset 0 2px 5px rgba(0,0,0,0.1)";
-        input.style.borderColor = "#ccc";
+
+    elemento.addEventListener('mouseleave', () => {
+        elemento.style.transform = `rotateX(0deg) rotateY(0deg)`;
     });
-});
-
-// ----------------------
-// Animación de tarjeta login 3D al mover el mouse
-// ----------------------
-const loginCard = document.querySelector(".login-card");
-document.addEventListener("mousemove", (e) => {
-    const x = e.clientX / window.innerWidth - 0.5;
-    const y = e.clientY / window.innerHeight - 0.5;
-    loginCard.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
-});
-
-document.addEventListener("mouseleave", () => {
-    loginCard.style.transform = "rotateY(0deg) rotateX(0deg)";
-});
-
-// ----------------------
-// Mensaje de bienvenida al cargar la página
-// ----------------------
-window.addEventListener("load", () => {
-    const msg = document.getElementById("authMessage");
-    if(msg) {
-        msg.textContent = "Bienvenido! Inicie sesión o regístrese.";
-        msg.style.color = "#0d6efd";
-        msg.style.transition = "all 0.5s ease";
-    }
-});
-
-// ----------------------
-// Validaciones simples extra
-// ----------------------
-function validarEmail(email) {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
 }
 
-// Opcional: animación de botón al hacer click
-const buttons = document.querySelectorAll("button");
-buttons.forEach(btn => {
-    btn.addEventListener("mousedown", () => {
-        btn.style.transform = "scale(0.95)";
+// Aplicar efecto 3D a login card
+const loginCard = document.querySelector('.login-card');
+if(loginCard) efecto3D(loginCard);
+
+// Aplicar efecto 3D a dashboard
+document.querySelectorAll('.sidebar, .main-content, form, table').forEach(el => {
+    efecto3D(el);
+});
+
+// ------------------------
+// Animaciones adicionales (hover) para botones
+// ------------------------
+document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'translateY(-3px)';
+        btn.style.boxShadow = '0 8px 15px rgba(0,0,0,0.3)';
     });
-    btn.addEventListener("mouseup", () => {
-        btn.style.transform = "scale(1)";
-        btn.style.transition = "transform 0.1s ease";
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translateY(0px)';
+        btn.style.boxShadow = '0 5px 10px rgba(0,0,0,0.2)';
     });
 });
+
+// ------------------------
+// Animación suave de enfoque en inputs
+// ------------------------
+document.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('focus', () => {
+        input.style.boxShadow = '0 0 8px rgba(255, 26, 198, 0.7)';
+        input.style.borderColor = '#ff1ac6';
+        input.style.transition = 'all 0.3s ease';
+    });
+    input.addEventListener('blur', () => {
+        input.style.boxShadow = 'inset 0 2px 5px rgba(0,0,0,0.1)';
+        input.style.borderColor = '#ccc';
+    });
+});
+
