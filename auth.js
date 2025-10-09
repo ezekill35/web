@@ -1,7 +1,7 @@
-// auth.js - Manejo de Firebase Authentication
+// auth.js - Firebase Auth v12.4.0
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 // ---------------------
 // Configuración Firebase
@@ -9,11 +9,11 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 const firebaseConfig = {
     apiKey: "AIzaSyCIo7CBX5jzAGlDFBu0mMb6BFfUsecaf7I",
     authDomain: "discovery-pets.firebaseapp.com",
-    databaseURL: "https://discovery-pets-default-rtdb.firebaseio.com",
     projectId: "discovery-pets",
-    storageBucket: "discovery-pets.appspot.com",
+    storageBucket: "discovery-pets.firebasestorage.app",
     messagingSenderId: "481355972999",
-    appId: "1:481355972999:web:0000000000000000000000"
+    appId: "1:481355972999:web:5f5fa07f75b3fc9f4c5322",
+    measurementId: "G-0WMLRY8FGM"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -24,7 +24,6 @@ const auth = getAuth(app);
 // ---------------------
 onAuthStateChanged(auth, user => {
     if(user){
-        // Si hay sesión activa, redirigir al dashboard
         window.location.href = "dashboard.html";
     }
 });
@@ -41,7 +40,7 @@ registerForm.addEventListener("submit", e => {
     const password = document.getElementById("registerPassword").value;
 
     createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(() => {
             authMessage.textContent = "¡Registro exitoso! Inicie sesión.";
             authMessage.style.color = "green";
             registerForm.reset();
@@ -62,11 +61,10 @@ loginForm.addEventListener("submit", e => {
     const password = document.getElementById("loginPassword").value;
 
     signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(() => {
             authMessage.textContent = "Inicio de sesión correcto";
             authMessage.style.color = "green";
 
-            // Redirigir al dashboard después de 1 segundo
             setTimeout(() => {
                 window.location.href = "dashboard.html";
             }, 1000);
