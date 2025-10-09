@@ -1,6 +1,6 @@
-// dashboard.js - CRUD completo con Cloud Firestore v12.4.0
+// dashboard.js - CRUD en tiempo real con Cloud Firestore
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 // ---------------------
@@ -92,14 +92,12 @@ function crearFilaFirestore(id, datos, tablaId, campos, coleccion){
 // Función para editar documento
 // ---------------------
 function editarDocumento(coleccion, id, datos){
-    // Llenar formulario con los datos existentes
     if(coleccion === "proveedores"){
         document.getElementById("rucProv").value = datos.ruc;
         document.getElementById("nombreProv").value = datos.nombre;
         document.getElementById("productoProv").value = datos.producto;
         document.getElementById("direccionProv").value = datos.direccion;
 
-        // Cambiar botón agregar por actualizar
         const btn = document.querySelector("#formProveedor button");
         btn.textContent = "Actualizar";
         btn.onclick = async (e) => {
@@ -116,7 +114,6 @@ function editarDocumento(coleccion, id, datos){
         };
     }
 
-    // Similar para facturas y gastos...
     if(coleccion === "facturas"){
         document.getElementById("proveedorFactura").value = datos.proveedor;
         document.getElementById("tipoFactura").value = datos.tipo;
@@ -185,8 +182,15 @@ formProveedor.addEventListener("submit", async e => {
 onSnapshot(collection(db, "proveedores"), snapshot => {
     const tabla = document.getElementById("tablaProveedores");
     tabla.innerHTML = "";
+    const proveedorSelect = document.getElementById("proveedorFactura");
+    proveedorSelect.innerHTML = "<option value=''>Seleccione</option>";
     snapshot.forEach(docu => {
         crearFilaFirestore(docu.id, docu.data(), "tablaProveedores", ["ruc","nombre","producto","direccion"], "proveedores");
+        // Actualizar select
+        const opt = document.createElement("option");
+        opt.value = docu.data().nombre;
+        opt.textContent = docu.data().nombre;
+        proveedorSelect.appendChild(opt);
     });
 });
 
@@ -237,4 +241,5 @@ onSnapshot(collection(db, "gastos"), snapshot => {
         crearFilaFirestore(docu.id, docu.data(), "tablaGastos", ["nombre","tipo","monto","fecha"], "gastos");
     });
 });
+
 
