@@ -1,0 +1,44 @@
+body.login-body {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-card {
+    background: white;
+    width: 350px;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.dashboard-body {
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+
+.sidebar {
+    min-width: 200px;
+    height: 100vh;
+    border-right: 1px solid #ddd;
+}
+
+.sidebar .nav-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+table {
+    border-radius: 10px;
+    overflow: hidden;
+}
