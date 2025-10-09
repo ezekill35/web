@@ -1,8 +1,7 @@
-// dashboard.js - CRUD completo y Firebase Realtime Database
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+// dashboard.js - CRUD completo con Cloud Firestore v12.4.0
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 // ---------------------
 // Configuración Firebase
@@ -10,27 +9,28 @@ import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/fi
 const firebaseConfig = {
     apiKey: "AIzaSyCIo7CBX5jzAGlDFBu0mMb6BFfUsecaf7I",
     authDomain: "discovery-pets.firebaseapp.com",
-    databaseURL: "https://discovery-pets-default-rtdb.firebaseio.com",
     projectId: "discovery-pets",
-    storageBucket: "discovery-pets.appspot.com",
+    storageBucket: "discovery-pets.firebasestorage.app",
     messagingSenderId: "481355972999",
-    appId: "1:481355972999:web:0000000000000000000000"
+    appId: "1:481355972999:web:5f5fa07f75b3fc9f4c5322",
+    measurementId: "G-0WMLRY8FGM"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ---------------------
 // Logout
 // ---------------------
-document.getElementById("logoutBtn").addEventListener("click", () => {
-    signOut(auth).then(() => {
-        window.location.href = "index.html";
-    });
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "index.html";
 });
 
+// ---------------------
 // Verificar sesión activa
+// ---------------------
 onAuthStateChanged(auth, user => {
     if(!user){
         window.location.href = "index.html";
@@ -42,7 +42,6 @@ onAuthStateChanged(auth, user => {
 // ---------------------
 const navButtons = document.querySelectorAll(".nav-btn");
 const sections = document.querySelectorAll(".content-section");
-
 navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
         navButtons.forEach(b => b.classList.remove("active"));
@@ -54,79 +53,148 @@ navButtons.forEach(btn => {
 });
 
 // ---------------------
-// Funciones genéricas
+// Función para crear fila con editar/eliminar
 // ---------------------
-function crearFila(id, datos, tablaId, campos) {
+function crearFilaFirestore(id, datos, tablaId, campos, coleccion){
     const tabla = document.getElementById(tablaId);
     const tr = document.createElement("tr");
+
     campos.forEach(campo => {
         const td = document.createElement("td");
         td.textContent = datos[campo] || "";
         tr.appendChild(td);
     });
 
-    // Botón eliminar
+    // Acciones
     const tdAcciones = document.createElement("td");
+
+    // Botón Editar
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar";
+    btnEditar.className = "btn btn-warning btn-sm me-1";
+    btnEditar.addEventListener("click", () => editarDocumento(coleccion, id, datos));
+    tdAcciones.appendChild(btnEditar);
+
+    // Botón Eliminar
     const btnEliminar = document.createElement("button");
     btnEliminar.textContent = "Eliminar";
     btnEliminar.className = "btn btn-danger btn-sm";
-    btnEliminar.addEventListener("click", () => {
-        remove(ref(db, `${tablaId}/${id}`));
+    btnEliminar.addEventListener("click", async () => {
+        await deleteDoc(doc(db, coleccion, id));
     });
     tdAcciones.appendChild(btnEliminar);
-    tr.appendChild(tdAcciones);
 
+    tr.appendChild(tdAcciones);
     tabla.appendChild(tr);
+}
+
+// ---------------------
+// Función para editar documento
+// ---------------------
+function editarDocumento(coleccion, id, datos){
+    // Llenar formulario con los datos existentes
+    if(coleccion === "proveedores"){
+        document.getElementById("rucProv").value = datos.ruc;
+        document.getElementById("nombreProv").value = datos.nombre;
+        document.getElementById("productoProv").value = datos.producto;
+        document.getElementById("direccionProv").value = datos.direccion;
+
+        // Cambiar botón agregar por actualizar
+        const btn = document.querySelector("#formProveedor button");
+        btn.textContent = "Actualizar";
+        btn.onclick = async (e) => {
+            e.preventDefault();
+            await updateDoc(doc(db, "proveedores", id), {
+                ruc: document.getElementById("rucProv").value,
+                nombre: document.getElementById("nombreProv").value,
+                producto: document.getElementById("productoProv").value,
+                direccion: document.getElementById("direccionProv").value
+            });
+            btn.textContent = "Agregar";
+            btn.onclick = null;
+            document.getElementById("formProveedor").reset();
+        };
+    }
+
+    // Similar para facturas y gastos...
+    if(coleccion === "facturas"){
+        document.getElementById("proveedorFactura").value = datos.proveedor;
+        document.getElementById("tipoFactura").value = datos.tipo;
+        document.getElementById("montoFactura").value = datos.monto;
+        document.getElementById("monedaFactura").value = datos.moneda;
+        document.getElementById("fechaFactura").value = datos.fecha;
+        document.getElementById("descFactura").value = datos.desc;
+
+        const btn = document.querySelector("#formFactura button");
+        btn.textContent = "Actualizar";
+        btn.onclick = async (e) => {
+            e.preventDefault();
+            await updateDoc(doc(db, "facturas", id), {
+                proveedor: document.getElementById("proveedorFactura").value,
+                tipo: document.getElementById("tipoFactura").value,
+                monto: document.getElementById("montoFactura").value,
+                moneda: document.getElementById("monedaFactura").value,
+                fecha: document.getElementById("fechaFactura").value,
+                desc: document.getElementById("descFactura").value
+            });
+            btn.textContent = "Agregar";
+            btn.onclick = null;
+            document.getElementById("formFactura").reset();
+        };
+    }
+
+    if(coleccion === "gastos"){
+        document.getElementById("nombreGasto").value = datos.nombre;
+        document.getElementById("tipoGasto").value = datos.tipo;
+        document.getElementById("montoGasto").value = datos.monto;
+        document.getElementById("fechaGasto").value = datos.fecha;
+
+        const btn = document.querySelector("#formGasto button");
+        btn.textContent = "Actualizar";
+        btn.onclick = async (e) => {
+            e.preventDefault();
+            await updateDoc(doc(db, "gastos", id), {
+                nombre: document.getElementById("nombreGasto").value,
+                tipo: document.getElementById("tipoGasto").value,
+                monto: document.getElementById("montoGasto").value,
+                fecha: document.getElementById("fechaGasto").value
+            });
+            btn.textContent = "Agregar";
+            btn.onclick = null;
+            document.getElementById("formGasto").reset();
+        };
+    }
 }
 
 // ---------------------
 // CRUD PROVEEDORES
 // ---------------------
 const formProveedor = document.getElementById("formProveedor");
-formProveedor.addEventListener("submit", e => {
+formProveedor.addEventListener("submit", async e => {
     e.preventDefault();
     const ruc = document.getElementById("rucProv").value;
     const nombre = document.getElementById("nombreProv").value;
     const producto = document.getElementById("productoProv").value;
     const direccion = document.getElementById("direccionProv").value;
 
-    push(ref(db, "tablaProveedores"), { ruc, nombre, producto, direccion });
-
+    await addDoc(collection(db, "proveedores"), { ruc, nombre, producto, direccion });
     formProveedor.reset();
 });
 
-// Escuchar cambios
-onValue(ref(db, "tablaProveedores"), snapshot => {
+// Actualizar tabla en tiempo real
+onSnapshot(collection(db, "proveedores"), snapshot => {
     const tabla = document.getElementById("tablaProveedores");
     tabla.innerHTML = "";
-    const proveedores = snapshot.val();
-    if(proveedores){
-        Object.keys(proveedores).forEach(id => {
-            crearFila(id, proveedores[id], "tablaProveedores", ["ruc","nombre","producto","direccion"]);
-        });
-        actualizarSelectProveedores(proveedores);
-    }
-});
-
-// ---------------------
-// Actualizar select de proveedores en facturas
-// ---------------------
-function actualizarSelectProveedores(proveedores){
-    const select = document.getElementById("proveedorFactura");
-    select.innerHTML = "";
-    Object.values(proveedores).forEach(p => {
-        const option = document.createElement("option");
-        option.value = p.nombre;
-        option.textContent = p.nombre;
-        select.appendChild(option);
+    snapshot.forEach(docu => {
+        crearFilaFirestore(docu.id, docu.data(), "tablaProveedores", ["ruc","nombre","producto","direccion"], "proveedores");
     });
-}
+});
 
 // ---------------------
 // CRUD FACTURAS
 // ---------------------
 const formFactura = document.getElementById("formFactura");
-formFactura.addEventListener("submit", e => {
+formFactura.addEventListener("submit", async e => {
     e.preventDefault();
     const proveedor = document.getElementById("proveedorFactura").value;
     const tipo = document.getElementById("tipoFactura").value;
@@ -135,45 +203,38 @@ formFactura.addEventListener("submit", e => {
     const fecha = document.getElementById("fechaFactura").value;
     const desc = document.getElementById("descFactura").value;
 
-    push(ref(db, "tablaFacturas"), { proveedor, tipo, monto, moneda, fecha, desc });
-
+    await addDoc(collection(db, "facturas"), { proveedor, tipo, monto, moneda, fecha, desc });
     formFactura.reset();
 });
 
-onValue(ref(db, "tablaFacturas"), snapshot => {
+onSnapshot(collection(db, "facturas"), snapshot => {
     const tabla = document.getElementById("tablaFacturas");
     tabla.innerHTML = "";
-    const facturas = snapshot.val();
-    if(facturas){
-        Object.keys(facturas).forEach(id => {
-            crearFila(id, facturas[id], "tablaFacturas", ["proveedor","tipo","monto","fecha","desc"]);
-        });
-    }
+    snapshot.forEach(docu => {
+        crearFilaFirestore(docu.id, docu.data(), "tablaFacturas", ["proveedor","tipo","monto","fecha","desc"], "facturas");
+    });
 });
 
 // ---------------------
 // CRUD GASTOS
 // ---------------------
 const formGasto = document.getElementById("formGasto");
-formGasto.addEventListener("submit", e => {
+formGasto.addEventListener("submit", async e => {
     e.preventDefault();
     const nombre = document.getElementById("nombreGasto").value;
     const tipo = document.getElementById("tipoGasto").value;
     const monto = document.getElementById("montoGasto").value;
     const fecha = document.getElementById("fechaGasto").value;
 
-    push(ref(db, "tablaGastos"), { nombre, tipo, monto, fecha });
-
+    await addDoc(collection(db, "gastos"), { nombre, tipo, monto, fecha });
     formGasto.reset();
 });
 
-onValue(ref(db, "tablaGastos"), snapshot => {
+onSnapshot(collection(db, "gastos"), snapshot => {
     const tabla = document.getElementById("tablaGastos");
     tabla.innerHTML = "";
-    const gastos = snapshot.val();
-    if(gastos){
-        Object.keys(gastos).forEach(id => {
-            crearFila(id, gastos[id], "tablaGastos", ["nombre","tipo","monto","fecha"]);
-        });
-    }
+    snapshot.forEach(docu => {
+        crearFilaFirestore(docu.id, docu.data(), "tablaGastos", ["nombre","tipo","monto","fecha"], "gastos");
+    });
 });
+
