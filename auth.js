@@ -1,11 +1,7 @@
-// auth.js - Firebase Auth v12.4.0
-
+// auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// ---------------------
-// Configuración Firebase
-// ---------------------
 const firebaseConfig = {
     apiKey: "AIzaSyCIo7CBX5jzAGlDFBu0mMb6BFfUsecaf7I",
     authDomain: "discovery-pets.firebaseapp.com",
@@ -19,21 +15,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ---------------------
-// Verificar sesión activa
-// ---------------------
-onAuthStateChanged(auth, user => {
-    if(user){
-        window.location.href = "dashboard.html";
-    }
-});
-
-// ---------------------
-// Registro de usuario
-// ---------------------
-const registerForm = document.getElementById("registerForm");
 const authMessage = document.getElementById("authMessage");
 
+// Redirigir si sesión activa
+onAuthStateChanged(auth, user => {
+    if(user) window.location.href = "dashboard.html";
+});
+
+// Registro
+const registerForm = document.getElementById("registerForm");
 registerForm.addEventListener("submit", e => {
     e.preventDefault();
     const email = document.getElementById("registerEmail").value;
@@ -45,15 +35,13 @@ registerForm.addEventListener("submit", e => {
             authMessage.style.color = "green";
             registerForm.reset();
         })
-        .catch((error) => {
-            authMessage.textContent = error.message;
+        .catch(err => {
+            authMessage.textContent = err.message;
             authMessage.style.color = "red";
         });
 });
 
-// ---------------------
-// Login de usuario
-// ---------------------
+// Login
 const loginForm = document.getElementById("loginForm");
 loginForm.addEventListener("submit", e => {
     e.preventDefault();
@@ -64,13 +52,10 @@ loginForm.addEventListener("submit", e => {
         .then(() => {
             authMessage.textContent = "Inicio de sesión correcto";
             authMessage.style.color = "green";
-
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 1000);
+            setTimeout(() => window.location.href = "dashboard.html", 1000);
         })
-        .catch((error) => {
-            authMessage.textContent = "Error: " + error.message;
+        .catch(err => {
+            authMessage.textContent = "Error: " + err.message;
             authMessage.style.color = "red";
         });
 });
