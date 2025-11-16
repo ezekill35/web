@@ -1,106 +1,638 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discovery Pets Web - Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body { 
-    background: linear-gradient(135deg, #ff1ac6, #ff66d9); 
-    font-family: 'Segoe UI', sans-serif; 
-    min-height: 100vh; 
-}
-header { 
-    background-color: #6a0dad; color: white; padding: 1rem 2rem; 
-    display: flex; justify-content: space-between; align-items: center; 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3); border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; 
-}
-.sidebar { 
-    min-width: 220px; height: 100vh; background: #fff; border-right: 1px solid #ddd; padding: 1rem; 
-    box-shadow: 5px 0 20px rgba(0,0,0,0.1); 
-}
-.sidebar .nav-btn { width: 100%; margin-bottom: 0.5rem; border-radius: 12px; box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
-.sidebar .nav-btn.active, .sidebar .nav-btn:hover { background-color: #6a0dad; color: white; }
-.main-content { flex-grow: 1; padding: 2rem; }
-.content-section { display: none; }
-.content-section.active { display: block; }
-form { background: white; padding: 1rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-bottom: 1.5rem; }
-table { border-radius: 12px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-table thead { background-color: #6a0dad; color: white; }
-button { box-shadow: 0 5px 10px rgba(0,0,0,0.2); border-radius: 10px; transition: all 0.2s ease; }
-button:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Gestión de Mascotas</title>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyClIVsZ5JQOOgPYyoQvSucOACxu-oszml0",
+            authDomain: "veterinaria-3f4fe.firebaseapp.com",
+            projectId: "veterinaria-3f4fe",
+            storageBucket: "veterinaria-3f4fe.firebasestorage.app",
+            messagingSenderId: "112867202700",
+            appId: "1:112867202700:web:560c6be184236b25f74da9",
+            measurementId: "G-X756K1SL3J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.firebaseApp = { db, collection, addDoc, getDocs, updateDoc, deleteDoc, doc };
+    </script>
+
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #50c878;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #3da765;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-edit {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background-color: #d68910;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .list-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .actions button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .no-pets {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            background-color: var(--light);
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
+        
+        .no-pets-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .welcome-message {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>Veterinaria Amigos Peludos</h1>
+            <p class="subtitle">Sistema de Gestión de Mascotas</p>
+        </header>
+        
+        <div class="welcome-message">
+            <h3>¡Bienvenido!</h3>
+            <p>Comienza registrando tu primera mascota en el formulario. La lista estará vacía hasta que agregues registros.</p>
+        </div>
+        
+        <div class="alert alert-success" id="successAlert">
+            Operación realizada con éxito.
+        </div>
+        
+        <div class="alert alert-error" id="errorAlert">
+            Ha ocurrido un error. Por favor, intente nuevamente.
+        </div>
+        
+        <div class="main-content">
+            <div class="form-container">
+                <h2 id="formTitle">Registrar Nueva Mascota</h2>
+                <form id="petForm">
+                    <input type="hidden" id="petId">
+                    
+                    <div class="form-group">
+                        <label for="petName">Nombre de la Mascota *</label>
+                        <input type="text" id="petName" required placeholder="Ej: Max, Luna, Rocky">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="animalType">Tipo de Animal *</label>
+                        <select id="animalType" required>
+                            <option value="">Seleccione un tipo</option>
+                            <option value="Perro">Perro</option>
+                            <option value="Gato">Gato</option>
+                            <option value="Conejo">Conejo</option>
+                            <option value="Ave">Ave</option>
+                            <option value="Roedor">Roedor</option>
+                            <option value="Reptil">Reptil</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="breed">Raza *</label>
+                        <input type="text" id="breed" required placeholder="Ej: Labrador, Siames, Pastor Alemán">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Edad (años)</label>
+                        <input type="number" id="age" min="0" max="50" placeholder="Ej: 3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ownerName">Nombre del Dueño *</label>
+                        <input type="text" id="ownerName" required placeholder="Ej: María González">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ownerPhone">Teléfono del Dueño</label>
+                        <input type="tel" id="ownerPhone" placeholder="Ej: 555-1234">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary" id="submitBtn">
+                            <span>➕ Registrar Mascota</span>
+                        </button>
+                        <button type="button" class="btn-secondary" id="cancelBtn" style="display: none;">
+                            ❌ Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="list-container">
+                <h2>Mascotas Registradas</h2>
+                
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, tipo, raza o dueño...">
+                </div>
+                
+                <div id="loadingMessage" class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando mascotas...</p>
+                </div>
+                
+                <div id="petsTableContainer" style="display: none;">
+                    <table id="petsTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Raza</th>
+                                <th>Edad</th>
+                                <th>Dueño</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="petsTableBody">
+                            <!-- Las mascotas se cargarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="noPetsMessage" class="no-pets">
+                    <div class="no-pets-icon">🐾</div>
+                    <h3>No hay mascotas registradas</h3>
+                    <p>¡Comienza agregando tu primera mascota usando el formulario!</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<header>
-    <h1 class="h4">🐾 Discovery Pets</h1>
-    <button id="logoutBtn" class="btn btn-outline-light">Cerrar sesión</button>
-</header>
+    <script>
+        // Variables globales
+        let pets = [];
+        let editingId = null;
 
-<div class="d-flex">
-    <nav class="sidebar">
-        <button class="nav-btn btn active" data-section="proveedores">🏪 Proveedores</button>
-        <button class="nav-btn btn" data-section="facturas">📑 Facturas</button>
-        <button class="nav-btn btn" data-section="gastos">💰 Gastos</button>
-    </nav>
+        // Elementos del DOM
+        const petForm = document.getElementById('petForm');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const petsTableBody = document.getElementById('petsTableBody');
+        const noPetsMessage = document.getElementById('noPetsMessage');
+        const petsTableContainer = document.getElementById('petsTableContainer');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const searchInput = document.getElementById('searchInput');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
 
-    <main class="main-content">
-        <!-- Proveedores -->
-        <section id="proveedores" class="content-section active">
-            <h2>Registro de Proveedores</h2>
-            <form id="formProveedor" class="d-flex flex-wrap gap-2">
-                <input id="rucProv" placeholder="RUC" class="form-control" required>
-                <input id="nombreProv" placeholder="Nombre" class="form-control" required>
-                <input id="productoProv" placeholder="Producto" class="form-control" required>
-                <input id="direccionProv" placeholder="Dirección" class="form-control" required>
-                <button type="submit" class="btn btn-primary">Agregar</button>
-            </form>
-            <table class="table table-striped">
-                <thead><tr><th>RUC</th><th>Nombre</th><th>Producto</th><th>Dirección</th><th>Acciones</th></tr></thead>
-                <tbody id="tablaProveedores"></tbody>
-            </table>
-        </section>
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esperar a que Firebase esté listo
+            setTimeout(() => {
+                loadPetsFromFirebase();
+                
+                // Event listeners
+                petForm.addEventListener('submit', handleFormSubmit);
+                cancelBtn.addEventListener('click', cancelEdit);
+                searchInput.addEventListener('input', filterPets);
+            }, 1000);
+        });
 
-        <!-- Facturas -->
-        <section id="facturas" class="content-section">
-            <h2>Registro de Facturas</h2>
-            <form id="formFactura" class="d-flex flex-wrap gap-2">
-                <select id="proveedorFactura" class="form-control" required></select>
-                <input id="tipoFactura" placeholder="Tipo de factura" class="form-control" required>
-                <input id="montoFactura" type="number" placeholder="Monto" class="form-control" required>
-                <input id="monedaFactura" placeholder="Moneda" class="form-control" value="S/." required>
-                <input id="fechaFactura" type="date" class="form-control" required>
-                <input id="descFactura" placeholder="Descripción" class="form-control">
-                <button type="submit" class="btn btn-primary">Agregar</button>
-            </form>
-            <table class="table table-striped">
-                <thead><tr><th>Proveedor</th><th>Tipo</th><th>Monto</th><th>Fecha</th><th>Descripción</th><th>Acciones</th></tr></thead>
-                <tbody id="tablaFacturas"></tbody>
-            </table>
-        </section>
+        // Cargar mascotas desde Firebase
+        async function loadPetsFromFirebase() {
+            try {
+                showLoading();
+                
+                const querySnapshot = await window.firebaseApp.getDocs(
+                    window.firebaseApp.collection(window.firebaseApp.db, "mascotas")
+                );
+                
+                pets = [];
+                querySnapshot.forEach((doc) => {
+                    const petData = doc.data();
+                    pets.push({
+                        id: doc.id,
+                        ...petData
+                    });
+                });
+                
+                hideLoading();
+                renderPetsTable();
+            } catch (error) {
+                console.error("Error cargando mascotas: ", error);
+                hideLoading();
+                
+                // Si hay error, mostrar lista vacía
+                pets = [];
+                renderPetsTable();
+                showAlert('Error al conectar con la base de datos', 'error');
+            }
+        }
 
-        <!-- Gastos -->
-        <section id="gastos" class="content-section">
-            <h2>Registro de Gastos</h2>
-            <form id="formGasto" class="d-flex flex-wrap gap-2">
-                <input id="nombreGasto" placeholder="Nombre" class="form-control" required>
-                <input id="tipoGasto" placeholder="Tipo" class="form-control" required>
-                <input id="montoGasto" type="number" class="form-control" required>
-                <input id="fechaGasto" type="date" class="form-control" required>
-                <button type="submit" class="btn btn-primary">Agregar</button>
-            </form>
-            <table class="table table-striped">
-                <thead><tr><th>Nombre</th><th>Tipo</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead>
-                <tbody id="tablaGastos"></tbody>
-            </table>
-        </section>
-    </main>
-</div>
+        // Manejar envío del formulario
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            try {
+                // Validar campos requeridos
+                const petName = document.getElementById('petName').value.trim();
+                const animalType = document.getElementById('animalType').value;
+                const breed = document.getElementById('breed').value.trim();
+                const ownerName = document.getElementById('ownerName').value.trim();
+                
+                if (!petName || !animalType || !breed || !ownerName) {
+                    showAlert('Por favor, complete todos los campos requeridos (*)', 'error');
+                    return;
+                }
+                
+                const petData = {
+                    name: petName,
+                    type: animalType,
+                    breed: breed,
+                    age: document.getElementById('age').value || null,
+                    ownerName: ownerName,
+                    ownerPhone: document.getElementById('ownerPhone').value || null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                if (editingId) {
+                    // Actualizar mascota existente
+                    await window.firebaseApp.updateDoc(
+                        window.firebaseApp.doc(window.firebaseApp.db, "mascotas", editingId),
+                        petData
+                    );
+                    showAlert('Mascota actualizada correctamente', 'success');
+                } else {
+                    // Agregar nueva mascota
+                    await window.firebaseApp.addDoc(
+                        window.firebaseApp.collection(window.firebaseApp.db, "mascotas"),
+                        petData
+                    );
+                    showAlert('Mascota registrada correctamente', 'success');
+                }
+                
+                // Recargar datos y limpiar formulario
+                await loadPetsFromFirebase();
+                resetForm();
+            } catch (error) {
+                console.error("Error guardando mascota: ", error);
+                showAlert('Error al guardar la mascota: ' + error.message, 'error');
+            }
+        }
 
-<script type="module" src="dashboard.js"></script>
-<script src="script.js"></script>
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alert = type === 'success' ? successAlert : errorAlert;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+
+        // Renderizar tabla de mascotas
+        function renderPetsTable(filteredPets = null) {
+            const petsToRender = filteredPets || pets;
+            
+            if (petsToRender.length === 0) {
+                petsTableContainer.style.display = 'none';
+                noPetsMessage.style.display = 'block';
+                return;
+            }
+            
+            petsTableContainer.style.display = 'block';
+            noPetsMessage.style.display = 'none';
+            
+            petsTableBody.innerHTML = '';
+            
+            petsToRender.forEach(pet => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td><strong>${pet.name}</strong></td>
+                    <td>${pet.type}</td>
+                    <td>${pet.breed}</td>
+                    <td>${pet.age ? pet.age + ' años' : 'N/A'}</td>
+                    <td>${pet.ownerName}</td>
+                    <td class="actions">
+                        <button class="btn-edit" onclick="editPet('${pet.id}')">✏️ Editar</button>
+                        <button class="btn-danger" onclick="deletePet('${pet.id}')">🗑️ Eliminar</button>
+                    </td>
+                `;
+                
+                petsTableBody.appendChild(row);
+            });
+        }
+
+        // Filtrar mascotas
+        function filterPets() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderPetsTable();
+                return;
+            }
+            
+            const filteredPets = pets.filter(pet => 
+                pet.name.toLowerCase().includes(searchTerm) ||
+                pet.type.toLowerCase().includes(searchTerm) ||
+                pet.breed.toLowerCase().includes(searchTerm) ||
+                pet.ownerName.toLowerCase().includes(searchTerm)
+            );
+            
+            renderPetsTable(filteredPets);
+        }
+
+        // Editar mascota
+        function editPet(id) {
+            const pet = pets.find(pet => pet.id === id);
+            
+            if (pet) {
+                document.getElementById('petId').value = pet.id;
+                document.getElementById('petName').value = pet.name;
+                document.getElementById('animalType').value = pet.type;
+                document.getElementById('breed').value = pet.breed;
+                document.getElementById('age').value = pet.age || '';
+                document.getElementById('ownerName').value = pet.ownerName;
+                document.getElementById('ownerPhone').value = pet.ownerPhone || '';
+                
+                editingId = id;
+                formTitle.textContent = 'Editar Mascota';
+                submitBtn.innerHTML = '<span>💾 Actualizar Mascota</span>';
+                cancelBtn.style.display = 'inline-block';
+                
+                // Scroll al formulario
+                document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Eliminar mascota
+        async function deletePet(id) {
+            const pet = pets.find(pet => pet.id === id);
+            if (!pet) return;
+            
+            if (confirm(`¿Está seguro de que desea eliminar a "${pet.name}" (${pet.type} - ${pet.breed})?`)) {
+                try {
+                    await window.firebaseApp.deleteDoc(
+                        window.firebaseApp.doc(window.firebaseApp.db, "mascotas", id)
+                    );
+                    
+                    await loadPetsFromFirebase();
+                    showAlert(`Mascota "${pet.name}" eliminada correctamente`, 'success');
+                } catch (error) {
+                    console.error("Error eliminando mascota: ", error);
+                    showAlert('Error al eliminar la mascota', 'error');
+                }
+            }
+        }
+
+        // Cancelar edición
+        function cancelEdit() {
+            resetForm();
+        }
+
+        // Restablecer formulario
+        function resetForm() {
+            petForm.reset();
+            editingId = null;
+            formTitle.textContent = 'Registrar Nueva Mascota';
+            submitBtn.innerHTML = '<span>➕ Registrar Mascota</span>';
+            cancelBtn.style.display = 'none';
+        }
+
+        // Mostrar carga
+        function showLoading() {
+            loadingMessage.style.display = 'block';
+            petsTableContainer.style.display = 'none';
+            noPetsMessage.style.display = 'none';
+        }
+
+        // Ocultar carga
+        function hideLoading() {
+            loadingMessage.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
 
